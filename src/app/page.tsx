@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import {CONTRACT_ABI, CONTRACT_ADDRESS} from "@/constants/contractABI"
 
 const HomePage = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -11,10 +12,8 @@ const HomePage = () => {
     const fetchEvents = async () => {
       try {
         const provider = new ethers.JsonRpcProvider(); // Use appropriate Ethereum RPC provider
-        const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
-        const abi = process.env.NEXT_PUBLIC_CONTRACT_ABI
-          ? JSON.parse(process.env.NEXT_PUBLIC_CONTRACT_ABI)
-          : [];
+        const contractAddress = CONTRACT_ADDRESS || "";
+        const abi = CONTRACT_ABI;
         const contract = new ethers.Contract(contractAddress, abi, provider);
 
         const eventsData = await contract.getAllEvents();
