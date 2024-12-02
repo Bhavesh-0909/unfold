@@ -3,6 +3,12 @@ import { useUser } from '@/context/useUser';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
+declare global {
+    interface Window {
+        ethereum: any;
+    }
+}
+
 const LoginPage: React.FC = () => {
     const {setWalletAddress} = useUser();
     const router = useRouter();
