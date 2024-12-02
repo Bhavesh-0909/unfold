@@ -1,14 +1,18 @@
 'use client';
+import { useUser } from '@/context/useUser';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 const LoginPage: React.FC = () => {
-    const [account, setAccount] = useState<string | null>(null);
+    const {setWalletAddress} = useUser();
+    const router = useRouter();
 
     const connectWallet = async () => {
         if (window.ethereum) {
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                setAccount(accounts[0]);
+                setWalletAddress(accounts[0]);
+                router.push('/');
             } catch (error) {
                 console.error("Error connecting to Metamask", error);
             }
@@ -20,16 +24,10 @@ const LoginPage: React.FC = () => {
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-black text-white">
             <h1 className="text-4xl mb-8">Login Page</h1>
-            {account ? (
-                <p className="text-xl">Connected account: {account}</p>
-            ) : (
-                <button 
-                    onClick={connectWallet} 
-                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-                >
-                    Connect Metamask Wallet
-                </button>
-            )}
+            <button
+                className="bg-blue-600 px-4 py-2 w-36 h-10 rounded text-white hover:bg-blue-700"
+                onClick={connectWallet}
+            >Connect wallet</button>
         </div>
     );
 };

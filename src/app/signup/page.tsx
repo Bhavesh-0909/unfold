@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { ethers } from 'ethers';
 
 const SignupPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -14,57 +13,90 @@ const SignupPage: React.FC = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission logic here
-        console.log({ email, name, aadhar, otp, password });
+        console.log({ email, name, aadhar, otp, password, walletAddress });
     };
 
     const handleotp = async () => {
+        if(email === '') {
+            alert('Please enter email');
+            return;
+        }
+
         const url = 'https://sandbox-api.okto.tech/api/v1/authenticate/email';
         const options = {
-          method: 'POST',
-          headers: {'X-Api-Key': process.env.NEXT_PUBLIC_X_API_KEY, 'Content-Type': 'application/json'},
-          body: `{"email":${email}}`
-        }
-        
+            method: 'POST',
+            headers: {
+                'X-Api-Key': process.env.NEXT_PUBLIC_X_API_KEY || '',
+                'Authorization': process.env.NEXT_PUBLIC_X_API_KEY || '',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        };
+
         try {
-          const response = await fetch(url, options);
-          setToken(response.token);
-          const data = await response.json();
-          console.log(data);
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                throw new Error('Failed to send OTP');
+            }
+            
+            const data = await response.json();
+            setToken(data.token);
+            alert('OTP sent successfully');
+            console.log(data);
         } catch (error) {
-          console.error(error);
+            console.error(error);
+            alert('Error sending OTP');
         }
-    }
+    };
 
     const verifyOtp = async () => {
-        const url = 'https://sandbox-api.okto.tech/api/v1/authenticate/email/verify';
+        const url = 'https://sandbox-api.okto.tech/api/v1/authenticate/verify-email';
         const options = {
-          method: 'POST',
-          headers: {'X-Api-Key': process.env.NEXT_PUBLIC_X_API_KEY, 'Content-Type': 'application/json'},
-          body: `{"email":${email},"otp":${otp},"token":${token}}`
+            method: 'POST',
+            headers: {
+                'X-Api-Key': process.env.NEXT_PUBLIC_X_API_KEY || '',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                email, 
+                otp, 
+                token 
+            })
         };
-    
+
         try {
-          const response = await fetch(url, options);
-          const data = await response.json();
-          console.log(data);
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                throw new Error('Failed to verify OTP');
+            }
+            
+            const data = await response.json();
+            console.log(data);
+            alert('OTP verified successfully');
         } catch (error) {
-          console.error(error);
+            console.error(error);
+            alert('Error verifying OTP');
         }
     };
 
     const connectWallet = async () => {
-        if (window.ethereum) {
+        // TypeScript-safe check for Ethereum provider
+        if (typeof window !== 'undefined' && (window as any).ethereum) {
             try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
                 const account = accounts[0];
-                setWalletAddress(account);                
+                setWalletAddress(account);
+                alert('Wallet connected successfully');
             } catch (error) {
                 console.error(error);
+                alert('Failed to connect wallet');
             }
         } else {
             alert('MetaMask is not installed');
         }
-    }
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-black">
@@ -74,16 +106,21 @@ const SignupPage: React.FC = () => {
                     <div>
                         <label className="block text-sm font-medium text-gray-300">Email:</label>
                         <div className='w-full flex gap-2'>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
-                        />
-                        <button onClick={handleotp} className='bg-blue-600 rounded-md'>Send Otp</button>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
+                                required
+                            />
+                            <button 
+                                type="button"
+                                onClick={handleotp} 
+                                className='bg-blue-600 rounded-md px-3 py-2 text-white'
+                            >
+                                Send Otp
+                            </button>
                         </div>
-                        
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-300">Name:</label>
@@ -91,8 +128,8 @@ const SignupPage: React.FC = () => {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            required
                             className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
+                            required
                         />
                     </div>
                     <div>
@@ -101,19 +138,28 @@ const SignupPage: React.FC = () => {
                             type="text"
                             value={aadhar}
                             onChange={(e) => setAadhar(e.target.value)}
-                            required
                             className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
+                            required
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-300">OTP:</label>
-                        <input
-                            type="text"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
-                        />
+                        <div className='w-full flex gap-2'>
+                            <input
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
+                                required
+                            />
+                            <button 
+                                type="button"
+                                onClick={verifyOtp} 
+                                className='bg-green-600 rounded-md px-3 py-2 text-white'
+                            >
+                                Verify OTP
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-300">Password:</label>
@@ -121,8 +167,8 @@ const SignupPage: React.FC = () => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
                             className="w-full px-3 py-2 mt-1 border rounded-md bg-gray-700 text-white focus:outline-none focus:ring focus:ring-indigo-200"
+                            required
                         />
                     </div>
                     <div>
