@@ -21,7 +21,8 @@ const SignupPage: React.FC = () => {
             alert('Please enter email');
             return;
         }
-
+        console.log(email);
+        console.log(process.env.NEXT_PUBLIC_X_API_KEY);
         const url = 'https://sandbox-api.okto.tech/api/v1/authenticate/email';
         const options = {
             method: 'POST',
@@ -41,7 +42,8 @@ const SignupPage: React.FC = () => {
             }
             
             const data = await response.json();
-            setToken(data.token);
+            console.log(data);
+            setToken(data.data.token);
             alert('OTP sent successfully');
             console.log(data);
         } catch (error) {
@@ -51,7 +53,8 @@ const SignupPage: React.FC = () => {
     };
 
     const verifyOtp = async () => {
-        const url = 'https://sandbox-api.okto.tech/api/v1/authenticate/verify-email';
+        console.log({ email, otp, token });
+        const url = 'https://sandbox-api.okto.tech/api/v1/authenticate/email/verify';
         const options = {
             method: 'POST',
             headers: {
@@ -71,6 +74,7 @@ const SignupPage: React.FC = () => {
             if (!response.ok) {
                 throw new Error('Failed to verify OTP');
             }
+            console.log(response);
             
             const data = await response.json();
             console.log(data);
