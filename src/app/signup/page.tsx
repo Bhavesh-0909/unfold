@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { ethers } from 'ethers';
 
 const SignupPage: React.FC = () => {
     const [email, setEmail] = useState('');
